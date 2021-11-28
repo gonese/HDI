@@ -1,10 +1,12 @@
+
+
 class CleaningAssistant:
     def __init__(self):
         self.valid = ["text", "f0", "mel", "spk", "audio"]
         self.technique = {
             "text": ["token_truncation", "length_regularization"],
-            "mel": ["normalization", "length_regularization", "merge", "split|text"],
-            "f0": ["quantize", "normalization", "length_regularization", "merge", "split|text"],
+            "mel": ["check_extraction", "normalization", "length_regularization", "merge", "split|text"],
+            "f0": ["check_extraction", "quantize", "normalization", "length_regularization", "merge", "split|text"],
             "spk": ["removal"],
             "audio": ["quantize"]
         }
@@ -41,7 +43,7 @@ class CleaningAssistant:
             for spec in self.technique[keyword]:
                 tech, cond = self.condition_parse(spec)
                 if cond is None or cond not in all_set:
-                    all_tech.append((spec, tech))
+                    all_tech.append((keyword, tech))
 
         all_tech.sort()
         return all_tech
@@ -53,3 +55,22 @@ class CleaningAssistant:
         if len(output) > 1:
             cond = output
         return output, cond
+
+# [0.1, 1, 0.5] quantize_bin = 3
+# (2 (length), 3 (bin)) ,matrix
+#            bin (0~1/3, 1/3~2/3, 2/3~1)
+#            (k= 3)
+# sequential [0           , 1 (1 > 2/3),   0]
+#            [0,          , 0          ,   1]
+#            [1(0.1 < 1/3), 0          ,   0] (n=3)
+
+# audio -> Feature extraction mel
+#  (text) -> (mel)
+
+
+# n-length array, k bins
+# n by k matrix (each bin has 1 / k length)
+
+# if __name__ == "__main__":
+#     a = CleaningAssistant()
+#     print(a.tech_suggestions(["mel", "spk", "f0"], ["mel"]))
